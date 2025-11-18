@@ -846,6 +846,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "futures",
+ "futures-util",
  "opencv",
  "pretty_env_logger",
  "srt-tokio",

@@ -7,6 +7,7 @@ ac-ffmpeg = "0.19.0"
 anyhow = "1.0.100"
 bytes = "1.11.0"
 futures = "0.3.31"
+futures-util = "0.3.31"
 opencv = "0.97.2"
 pretty_env_logger = "0.5.0"
 srt-tokio = "0.4.4"
@@ -28,3 +29,11 @@ path = "v2/sender.rs"
 [[bin]]
 name = "v2_receiver"
 path = "v2/receiver.rs"
+
+[[bin]]
+name = "v3_sender"
+path = "v3/sender.rs"
+
+[[bin]]
+name = "v3_receiver"
+path = "v3/receiver.rs"
