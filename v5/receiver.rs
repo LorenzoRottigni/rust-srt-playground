@@ -1,42 +1,41 @@
 use anyhow::Result;
-use futures::TryStreamExt;
-use opencv::{core::Vector, highgui, imgcodecs, prelude::*};
+use futures::prelude::*;
+use opencv::{highgui, imgcodecs, prelude::*};
 use srt_tokio::SrtSocket;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Connect to the SRT sender at localhost:9999
-    println!("Connecting to SRT sender on 127.0.0.1:9999...");
+    pretty_env_logger::init();
+
+    // Connect to the SRT sender on localhost:9999
     let mut rx = SrtSocket::builder().call("127.0.0.1:9999", None).await?;
-    println!("Connected. Receiving frames...");
+    println!("Connected to SRT sender on 127.0.0.1:9999");
 
-    // Create an OpenCV window
-    highgui::named_window("SRT Video", highgui::WINDOW_AUTOSIZE)?;
+    // Create a window to display received frames
+    let window = "Received Frame";
+    highgui::named_window(window, highgui::WINDOW_AUTOSIZE)?;
 
-    // Receive loop: read (Instant, Bytes) packets until the sender closes or error occurs
-    while let Some((_, bytes)) = rx.try_next().await? {
-        // Convert the received Bytes (JPEG data) into a Vec<u8>
-        let frame_vec: Vec<u8> = bytes.to_vec();
-        // Decode JPEG into an OpenCV Mat (color image)
-        let buf = Vector::<u8>::from_iter(frame_vec);
+    // Loop: receive (timestamp, data) and display frames
+    while let Some((timestamp, data)) = rx.try_next().await? {
+        println!("Received frame at {:?}", timestamp);
+
+        // Convert the Bytes to a Vec<u8> and decode JPEG into a Mat
+        let jpeg_bytes = data.to_vec();
+        let buf = Mat::from_slice::<u8>(&jpeg_bytes)?;
         let frame = imgcodecs::imdecode(&buf, imgcodecs::IMREAD_COLOR)?;
         if frame.empty() {
-            eprintln!("Warning: Decoded empty frame");
+            println!("Empty frame received, stopping.");
             break;
         }
 
-        println!("Received frame, displaying...");
-        // Display the frame
-        highgui::imshow("SRT Video", &frame)?;
-        // Wait 1 ms for GUI events (ESC key to break)
-        let key = highgui::wait_key(1)?;
-        if key == 27 {
-            // ESC key
-            println!("ESC pressed. Exiting.");
+        // Show the frame
+        highgui::imshow(window, &frame)?;
+        // Wait briefly (e.g. 1 ms) to allow window to update; exit if 'q' is pressed
+        if highgui::wait_key(1)? == 'q' as i32 {
+            println!("Exit requested by user");
             break;
         }
     }
 
-    println!("Receiver finished.");
     Ok(())
 }
