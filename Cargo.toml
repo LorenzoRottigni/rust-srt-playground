@@ -44,3 +44,11 @@ path = "v4/sender.rs"
 [[bin]]
 name = "v4_receiver"
 path = "v4/receiver.rs"
+
+[[bin]]
+name = "v5_sender"
+path = "v5/sender.rs"
+
+[[bin]]
+name = "v5_receiver"
+path = "v5/receiver.rs"
